@@ -6,6 +6,7 @@
 #include<sstream>
 #define RAYGUI_IMPLEMENTATION
 #include"raygui.h"
+#include"add_obj.h"
 
 const int screenWidth = 800;
 const int screenHeight = 450;
@@ -13,21 +14,36 @@ float ires[2] = {800.0f, 450.0f};
 float aspect_ratio = (float)screenWidth/(float)screenHeight;
 float iCamPos[3] = {0.5f, 0.5f, -3.0f};
 float t = 0.0f;
+int dropdown_active = 0;
+bool editing = false;
+bool visible = false;
+Rectangle dropdown_pos = {10, screenHeight/2, screenWidth/4, screenHeight/12};
+Rectangle dropdown_box = {10, screenHeight/2, screenWidth/4, screenHeight/12};
 std::vector<float> displacements;
+
+bool isInRect(Rectangle r, Vector2 loc){
+    return loc.x > r.x && loc.x < r.x+r.width && loc.y > r.y && loc.y < r.y+r.height;
+}
+
+void drawGui(){
+    if(visible)if(GuiDropdownBox(dropdown_pos, "#01#ONE;#02#TWO;#03#THREE;#04#FOUR", &dropdown_active, editing)){
+        editing = !editing;
+    }
+}
 
 float randf(){
     return (float)rand()/(float)RAND_MAX;
 }
 
-void replace_first(
-    std::string& s,
-    std::string const& toReplace,
-    std::string const& replaceWith
-) {
-    std::size_t pos = s.find(toReplace);
-    if (pos == std::string::npos) return;
-    s.replace(pos, toReplace.length(), replaceWith);
-}
+// void replace_first(
+//     std::string& s,
+//     std::string const& toReplace,
+//     std::string const& replaceWith
+// ) {
+//     std::size_t pos = s.find(toReplace);
+//     if (pos == std::string::npos) return;
+//     s.replace(pos, toReplace.length(), replaceWith);
+// }
 
 int main(void)
 {
@@ -46,14 +62,23 @@ int main(void)
 
     while (!WindowShouldClose())
     {
+        if(IsKeyPressed(KEY_ENTER)){
+            visible = false;
+        }
+        if ((IsKeyDown(KEY_LEFT_SHIFT)||IsKeyDown(KEY_RIGHT_SHIFT))&&IsKeyDown(KEY_A)){
+            dropdown_pos.x = GetMousePosition().x;
+            dropdown_pos.y = GetMousePosition().y;
+            visible = true;
+        }
         if (IsKeyPressed(KEY_SPACE)){
             UnloadShader(baseShader);
             std::ostringstream stream;
             displacements.push_back(randf());
             displacements.push_back(randf());
             displacements.push_back(randf());
-            stream << "res=opSmoothUnion(res, sphere(p-displacements["<< id <<"], 1.0), 0.1);\n//<**>";
-            replace_first(baseString, "//<**>", stream.str());
+            displacements.push_back(randf());
+            displacements.push_back(randf());
+            addSphere(baseString, id, (UnionType)(rand()/(RAND_MAX/7)));
             baseShader = LoadShaderFromMemory(0, baseString.c_str());
             iresLoc        = GetShaderLocation(baseShader, "resolution");
             iCamPosLoc = GetShaderLocation(baseShader, "camPos");
@@ -65,19 +90,18 @@ int main(void)
             while(!IsShaderReady(baseShader)){
                 ;
             }
-            id++;
-
+            id+=5;
         }
-        if (IsKeyPressed(KEY_UP)){
-            iCamPos[2]-= 1.0f*GetFrameTime();
+        if (IsKeyDown(KEY_UP)){
+            iCamPos[1]-= 1.0f*GetFrameTime();
         }
-        if (IsKeyPressed(KEY_DOWN)){
-            iCamPos[2]+= 1.0f*GetFrameTime();
+        if (IsKeyDown(KEY_DOWN)){
+            iCamPos[1]+= 1.0f*GetFrameTime();
         }
-        if (IsKeyPressed(KEY_LEFT)){
+        if (IsKeyDown(KEY_LEFT)){
             iCamPos[0]-= 1.0f*GetFrameTime();
         }
-        if (IsKeyPressed(KEY_RIGHT)){
+        if (IsKeyDown(KEY_RIGHT)){
             iCamPos[0]+= 1.0f*GetFrameTime();
         }
         if (IsKeyPressed(KEY_ENTER) && (IsKeyDown(KEY_LEFT_ALT) || IsKeyDown(KEY_RIGHT_ALT))){
@@ -100,7 +124,7 @@ int main(void)
         SetShaderValue(baseShader, iCamPosLoc, iCamPos, SHADER_UNIFORM_VEC3);
         SetShaderValue(baseShader, iAspectRatioLoc, &aspect_ratio, SHADER_UNIFORM_FLOAT);
         SetShaderValue(baseShader, iTimeLoc, &t, SHADER_UNIFORM_FLOAT);
-        SetShaderValueV(baseShader, iDisplacementLoc, displacements.data(), SHADER_UNIFORM_VEC3, displacements.size());
+        SetShaderValueV(baseShader, iDisplacementLoc, displacements.data(), SHADER_UNIFORM_FLOAT, displacements.size());
         SetShaderValue(baseShader, iLengthLoc, (int*)(displacements.size()), SHADER_UNIFORM_INT);
 
         BeginDrawing();
@@ -109,6 +133,7 @@ int main(void)
                 DrawRectangle(0, 0, screenWidth, screenHeight, BLACK);
             EndShaderMode();
             DrawFPS(10, 10);
+            drawGui();
         EndDrawing();
     }
     UnloadShader(baseShader);
