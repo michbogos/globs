@@ -7,25 +7,27 @@
 #include<raymath.h>
 #include<math.h>
 #include<assert.h>
+#include<stdio.h>
+#include<GL/gl.h>
 
 Mesh GenMesh(){
-    TRIANGLE tris[10000];
+    TRIANGLE tris[100000];
     int count = 0;
-    for(float x = -1.0; x < 1.0; x+=0.1){
-        for(float y = -1.0; y < 1.0; y+=0.1){
-            for(float z = -1.0; z < 1.0; z+=0.1){
+    for(float x = -2.0; x < 2.0; x+=0.1){
+        for(float y = -2.0; y < 2.0; y+=0.1){
+            for(float z = -2.0; z < 2.0; z+=0.1){
                 GRIDCELL cell;
                 int id = 0;
                 for(int dx = 0; dx <= 1; dx++){
                     for(int dy = 0; dy <= 1; dy++){
                         for(int dz = 0; dz <= 1; dz++){
                             cell.p[id] = (XYZ){x+0.1*dx, y+0.1*dy, z+0.1*dz};
-                            cell.val[id] = sqrtf((x+0.1*dx)*(x+0.1*dx)+(y+0.1*dy)*(y+0.1*dy)+(z+0.1*dz)*(z+0.1*dz))-1.0f;
+                            cell.val[id] = sqrtf((x+0.1*dx)*(x+0.1*dx)+(y+0.1*dy)*(y+0.1*dy)+(z+0.1*dz)*(z+0.1*dz))-0.9f;
                             id++;
                         }
                     }
                 }
-                TRIANGLE chunk[10];
+                TRIANGLE chunk[15];
                 int res = Polygonise(cell, 0.0, chunk);
                 for(int i = 0; i < res; i++){
                     tris[count+i] = chunk[i];
@@ -154,7 +156,7 @@ int main()
     while (!WindowShouldClose())
     {
         UpdateCamera(&camera, CAMERA_FREE);
-
+        glDisable(GL_CULL_FACE);
         BeginDrawing();
         ClearBackground(BLACK);
             BeginMode3D(camera);
