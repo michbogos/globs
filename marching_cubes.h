@@ -1,7 +1,9 @@
 #include<raymath.h>
 #include<stdlib.h>
+#include<vector>
 
 typedef Vector3 XYZ;
+
 
 typedef struct {
    XYZ p[3];
@@ -39,11 +41,10 @@ XYZ VertexInterp(float isolevel, XYZ p1, XYZ p2, float valp1, float valp2)
 	0 will be returned if the grid cell is either totally above
    of totally below the isolevel.
 */
-int Polygonise(GRIDCELL grid,double isolevel,TRIANGLE *triangles)
-{
+std::vector<TRIANGLE> Polygonise(GRIDCELL grid,double isolevel){
    int i,ntriang;
    int cubeindex;
-   XYZ vertlist[12];
+   std::vector<XYZ> vertlist(12);
 
 int edgeTable[256]={
 0x0  , 0x109, 0x203, 0x30a, 0x406, 0x50f, 0x605, 0x70c,
@@ -352,7 +353,7 @@ char triTable[256][16] =
 
    /* Cube is entirely in/out of the surface */
    if (edgeTable[cubeindex] == 0)
-      return(0);
+      return {};
 
    /* Find the vertices where the surface intersects the cube */
    if (edgeTable[cubeindex] & 1)
@@ -393,15 +394,12 @@ char triTable[256][16] =
          VertexInterp(isolevel,grid.p[3],grid.p[7],grid.val[3],grid.val[7]);
 
    /* Create the triangle */
-   ntriang = 0;
+   std::vector<TRIANGLE> tris;
    for (i=0;triTable[cubeindex][i]!=-1;i+=3) {
-      triangles[ntriang].p[0] = vertlist[triTable[cubeindex][i  ]];
-      triangles[ntriang].p[1] = vertlist[triTable[cubeindex][i+1]];
-      triangles[ntriang].p[2] = vertlist[triTable[cubeindex][i+2]];
-      ntriang++;
+      tris.push_back({vertlist[triTable[cubeindex][i  ]], vertlist[triTable[cubeindex][i+1]], vertlist[triTable[cubeindex][i+2]]});
    }
 
-   return(ntriang);
+   return tris;
 }
 
 /*
