@@ -12,6 +12,8 @@
 #include<algorithm>
 #include<cmath>
 
+#define EPSILON 0.1
+
 double clamp(double d, double min, double max) {
   const double t = d < min ? min : d;
   return t > max ? max : t;
@@ -21,28 +23,34 @@ float Lerp(double a, double b, double t){
     return t*a+(1.0-t)*b;
 }
 
-
 float opSmoothUnion( float d1, float d2, float k )
 {
     float h = clamp( 0.5 + 0.5*(d2-d1)/k, 0.0, 1.0 );
     return Lerp( d2, d1, h ) - k*h*(1.0-h);
 }
 
+Vector3 roundv3(Vector3 a){
+    return (Vector3){std::roundf(a.x), std::roundf(a.y), std::roundf(a.z)};
+}
+
 
 Mesh GenMesh(){
     std::vector<TRIANGLE> tris;
     int count = 0;
-    for(double x = -2.0; x < 2.0; x+=0.1){
-        for(double y = -2.0; y < 2.0; y+=0.1){
-            for(double z = -2.0; z < 2.0; z+=0.1){
+    #pragma omp parallel
+    for(double x = -2.0; x < 2.0; x+=EPSILON){
+        for(double y = -2.0; y < 2.0; y+=EPSILON){
+            for(double z = -2.0; z < 2.0; z+=EPSILON){
                 GRIDCELL cell;
                 int id = 0;
                 for(int dx = 0; dx <= 1; dx++){
                     for(int dy = 0; dy <= 1; dy++){
                         for(int dz = 0; dz <= 1; dz++){
-                            cell.p[id] = (XYZ){x+0.1*dx, y+0.1*dy, z+0.1*dz};
-                            Vector3 p = (Vector3){x+0.1*dx, y+0.1*dy, z+0.1*dz};
-                            cell.val[id] = opSmoothUnion(Vector3Length(p)-1.0, Vector3Length(Vector3Subtract(p, (Vector3){0.5, 0.5, 0.5}))-1.0, 0.1);
+                            cell.p[id] = (XYZ){x+EPSILON*dx, y+EPSILON*dy, z+EPSILON*dz};
+                            Vector3 p = (Vector3){x+EPSILON*dx, y+EPSILON*dy, z+EPSILON*dz};
+                            Vector3 s = (Vector3){2.5, 2.5, 2.5};
+                            //p = Vector3Subtract(p, Vector3Multiply(s, roundv3(Vector3Divide(p, s))));
+                            cell.val[id] = Vector3Length(p)-1.0;
                             id++;
                         }
                     }
@@ -113,7 +121,7 @@ int main()
         ClearBackground(BLACK);
             BeginMode3D(camera);
                 DrawGrid(10, 10);
-                DrawModel(model, (Vector3){0, 0, 0}, 1.0f, WHITE);
+                DrawModelWires(model, (Vector3){0, 0, 0}, 1.0f, WHITE);
             EndMode3D();
         EndDrawing();
     }
