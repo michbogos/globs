@@ -107,7 +107,8 @@ int main()
     const int screenWidth = 800;
     const int screenHeight = 450;
 
-    InitWindow(screenWidth, screenHeight, "raylib [core] example - basic window");
+    InitWindow(screenWidth, screenHeight, "Globs");
+
 
     float cx = 0.0f;
     float cy = 10.0f;
@@ -137,11 +138,27 @@ int main()
         glDisable(GL_CULL_FACE);
         BeginDrawing();
         ClearBackground(BLACK);
+            DrawFPS(10, 10);
             BeginMode3D(camera);
                 DrawGrid(10, 10);
                 DrawModel(model, (Vector3){0, 0, 0}, 1.0f, WHITE);
             EndMode3D();
         EndDrawing();
+
+        if (IsKeyPressed(KEY_ENTER) && (IsKeyDown(KEY_LEFT_ALT) || IsKeyDown(KEY_RIGHT_ALT))){
+            int display = GetCurrentMonitor();
+            if (IsWindowFullscreen())
+            {
+                // if we are full screen, then go back to the windowed size
+                SetWindowSize(screenWidth, screenHeight);
+            }
+            else
+            {
+                // if we are not full screen, set the window size to match the monitor we are on
+                SetWindowSize(1920, 1080);
+            }
+            ToggleFullscreen();
+        }
     }
 
     CloseWindow();
