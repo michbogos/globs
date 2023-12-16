@@ -12,7 +12,7 @@
 #include<algorithm>
 #include<cmath>
 
-#define EPSILON 0.1
+#define EPSILON 0.2
 
 double clamp(double d, double min, double max) {
   const double t = d < min ? min : d;
@@ -70,6 +70,8 @@ Mesh GenMesh(){
     mesh.triangleCount = tris.size();
     mesh.vertexCount = mesh.triangleCount*3;
     mesh.vertices = (float *)malloc(mesh.vertexCount*3*sizeof(float));
+    mesh.normals = (float *)malloc(mesh.vertexCount*3*sizeof(float));
+    int* num_vertices = (int *)malloc(mesh.vertexCount*3*sizeof(float));
     for(int i = 0; i < tris.size(); i++){
         mesh.vertices[i*9+0] = tris[i].p[0].x;
         mesh.vertices[i*9+1] = tris[i].p[0].y;
@@ -82,6 +84,17 @@ Mesh GenMesh(){
         mesh.vertices[i*9+6] = tris[i].p[2].x;
         mesh.vertices[i*9+7] = tris[i].p[2].y;
         mesh.vertices[i*9+8] = tris[i].p[2].z;
+
+        Vector3 cross = Vector3CrossProduct(Vector3Subtract(tris[i].p[1], tris[i].p[0]), Vector3Subtract(tris[i].p[2], tris[i].p[0]));
+        mesh.normals[i*9+0] = cross.x;
+        mesh.normals[i*9+1] = cross.y;
+        mesh.normals[i*9+2] = cross.z;
+        mesh.normals[i*9+3] = cross.x;
+        mesh.normals[i*9+4] = cross.y;
+        mesh.normals[i*9+5] = cross.z;
+        mesh.normals[i*9+6] = cross.x;
+        mesh.normals[i*9+7] = cross.y;
+        mesh.normals[i*9+8] = cross.z;
     }
 
      UploadMesh(&mesh, false);
@@ -107,11 +120,16 @@ int main()
     camera.fovy = 90.0f;                                // Camera field-of-view Y
     camera.projection = CAMERA_PERSPECTIVE;        // Camera mode type
 
-    Vector3 cubepos = {0.0f,1.0f,0.0f};
 
     SetTargetFPS(60);
 
     Model model = LoadModelFromMesh(GenMesh());
+
+    Texture2D matcapTexture = LoadTexture("matcap2.png"); 
+
+    Shader Matcap = LoadShader("shader.vs", "shader.fs");
+    model.materials[0].shader = Matcap;
+    model.materials[0].maps->texture = matcapTexture;
 
     while (!WindowShouldClose())
     {
@@ -121,7 +139,7 @@ int main()
         ClearBackground(BLACK);
             BeginMode3D(camera);
                 DrawGrid(10, 10);
-                DrawModelWires(model, (Vector3){0, 0, 0}, 1.0f, WHITE);
+                DrawModel(model, (Vector3){0, 0, 0}, 1.0f, WHITE);
             EndMode3D();
         EndDrawing();
     }
