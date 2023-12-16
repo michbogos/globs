@@ -17,7 +17,7 @@ double clamp(double d, double min, double max) {
   return t > max ? max : t;
 }
 
-float lerp(double a, double b, double t){
+float Lerp(double a, double b, double t){
     return t*a+(1.0-t)*b;
 }
 
@@ -25,16 +25,16 @@ float lerp(double a, double b, double t){
 float opSmoothUnion( float d1, float d2, float k )
 {
     float h = clamp( 0.5 + 0.5*(d2-d1)/k, 0.0, 1.0 );
-    return lerp( d2, d1, h ) - k*h*(1.0-h);
+    return Lerp( d2, d1, h ) - k*h*(1.0-h);
 }
 
 
 Mesh GenMesh(){
     std::vector<TRIANGLE> tris;
     int count = 0;
-    for(double x = -2.0; x < 2.0; x+=0.05){
-        for(double y = -2.0; y < 2.0; y+=0.05){
-            for(double z = -2.0; z < 2.0; z+=0.05){
+    for(double x = -2.0; x < 2.0; x+=0.1){
+        for(double y = -2.0; y < 2.0; y+=0.1){
+            for(double z = -2.0; z < 2.0; z+=0.1){
                 GRIDCELL cell;
                 int id = 0;
                 for(int dx = 0; dx <= 1; dx++){
@@ -47,6 +47,10 @@ Mesh GenMesh(){
                         }
                     }
                 }
+                std::swap(cell.p[2], cell.p[3]);
+                std::swap(cell.p[6], cell.p[7]);
+                std::swap(cell.val[2], cell.val[3]);
+                std::swap(cell.val[6], cell.val[7]);
                 std::vector<TRIANGLE> res = Polygonise(cell, 0.0);
                 for(int i = 0; i < res.size(); i++){
                     tris.push_back(res[i]);
