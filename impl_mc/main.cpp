@@ -12,7 +12,7 @@
 #include<algorithm>
 #include<cmath>
 
-#define EPSILON 0.2
+#define EPSILON 0.05
 
 double clamp(double d, double min, double max) {
   const double t = d < min ? min : d;
@@ -38,9 +38,9 @@ Mesh GenMesh(){
     std::vector<TRIANGLE> tris;
     int count = 0;
     #pragma omp parallel
-    for(double x = -2.0; x < 2.0; x+=EPSILON){
-        for(double y = -2.0; y < 2.0; y+=EPSILON){
-            for(double z = -2.0; z < 2.0; z+=EPSILON){
+    for(double x = -5.0; x < 5.0; x+=EPSILON){
+        for(double y = -5.0; y < 5.0; y+=EPSILON){
+            for(double z = -5.0; z < 5.0; z+=EPSILON){
                 GRIDCELL cell;
                 int id = 0;
                 for(int dx = 0; dx <= 1; dx++){
@@ -50,7 +50,7 @@ Mesh GenMesh(){
                             Vector3 p = (Vector3){x+EPSILON*dx, y+EPSILON*dy, z+EPSILON*dz};
                             Vector3 s = (Vector3){2.5, 2.5, 2.5};
                             //p = Vector3Subtract(p, Vector3Multiply(s, roundv3(Vector3Divide(p, s))));
-                            cell.val[id] = Vector3Length(p)-1.0;
+                            cell.val[id] = sin(p.x*p.y)+sin(p.x*p.z)+cos(p.y*p.z)-1.0;
                             id++;
                         }
                     }
