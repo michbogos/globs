@@ -2,3 +2,4 @@ globs
 .vscode/
 build/
 *.o
+*.ini
