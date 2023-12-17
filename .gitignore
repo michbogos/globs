@@ -1,3 +1,4 @@
 globs
 .vscode/
 build/
+*.o
