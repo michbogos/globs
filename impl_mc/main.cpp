@@ -50,7 +50,7 @@ Mesh GenMesh(){
                             Vector3 p = (Vector3){x+EPSILON*dx, y+EPSILON*dy, z+EPSILON*dz};
                             Vector3 s = (Vector3){2.5, 2.5, 2.5};
                             //p = Vector3Subtract(p, Vector3Multiply(s, roundv3(Vector3Divide(p, s))));
-                            cell.val[id] = sin(p.x*p.y)+sin(p.x*p.z)+cos(p.y*p.z)-1.0;
+                            cell.val[id] = p.x*p.x+p.y*p.y+p.z*p.z-1.0;
                             id++;
                         }
                     }

@@ -14,6 +14,7 @@
 #include <stdio.h>
 #include <shader.h>
 #include <iostream>
+#include <vector>
 #define GL_SILENCE_DEPRECATION
 #if defined(IMGUI_IMPL_OPENGL_ES2)
 #include <GLES2/gl2.h>
@@ -195,6 +196,15 @@ int main(int, char**)
 	glActiveTexture(GL_TEXTURE0);
 	glBindTexture(GL_TEXTURE_2D, texture);
 
+    unsigned int SSBO;
+
+    std::vector<float> data(20*20*20, 1.0f);
+
+    glGenBuffers(1, &SSBO);
+    glBindBuffer(GL_SHADER_STORAGE_BUFFER, SSBO);
+    glBufferData(GL_SHADER_STORAGE_BUFFER, data.size()*4, data.data(), GL_DYNAMIC_READ); //sizeof(data) only works for statically sized C/C++ arrays.
+    glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 2, SSBO);
+
     // Main loop
 #ifdef __EMSCRIPTEN__
     // For an Emscripten build we are disabling file-system access, so let's not attempt to do a fopen() of the imgui.ini file.
@@ -227,7 +237,7 @@ int main(int, char**)
         glClear(GL_COLOR_BUFFER_BIT);
 
         computeShader.use();
-        glDispatchCompute((unsigned int)TEXTURE_WIDTH, (unsigned int)TEXTURE_HEIGHT, 1);
+        glDispatchCompute((unsigned int)TEXTURE_WIDTH/8.0, (unsigned int)TEXTURE_HEIGHT/4.0, 1);
         glMemoryBarrier(GL_SHADER_IMAGE_ACCESS_BARRIER_BIT);
 
 		// render image to quad
