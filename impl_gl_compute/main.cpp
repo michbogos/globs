@@ -38,6 +38,19 @@ static void glfw_error_callback(int error, const char* description)
     fprintf(stderr, "GLFW Error %d: %s\n", error, description);
 }
 
+void GLAPIENTRY MessageCallback( GLenum source,
+                 GLenum type,
+                 GLuint id,
+                 GLenum severity,
+                 GLsizei length,
+                 const GLchar* message,
+                 const void* userParam )
+{
+  fprintf( stderr, "GL CALLBACK: %s type = 0x%x, severity = 0x%x, message = %s\n",
+           ( type == GL_DEBUG_TYPE_ERROR ? "** GL ERROR **" : "" ),
+            type, severity, message );
+}
+
 // -----------------------------------------
 unsigned int quadVAO = 0;
 unsigned int quadVBO;
@@ -198,12 +211,18 @@ int main(int, char**)
 
     unsigned int SSBO;
 
-    std::vector<float> data(20*20*20, 1.0f);
+    float data[3] = {0.0f, 0.0f, 0.0f};
+    data[0] = 0.0f;
+
+    float* base;
 
     glGenBuffers(1, &SSBO);
     glBindBuffer(GL_SHADER_STORAGE_BUFFER, SSBO);
-    glBufferData(GL_SHADER_STORAGE_BUFFER, data.size()*4, data.data(), GL_DYNAMIC_READ); //sizeof(data) only works for statically sized C/C++ arrays.
+    glBufferData(GL_SHADER_STORAGE_BUFFER, sizeof(data), data, GL_READ_WRITE); //sizeof(data) only works for statically sized C/C++ arrays.
     glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 2, SSBO);
+
+    glEnable              ( GL_DEBUG_OUTPUT );
+    glDebugMessageCallback( MessageCallback, 0 );
 
     // Main loop
 #ifdef __EMSCRIPTEN__
@@ -236,9 +255,17 @@ int main(int, char**)
         glClearColor(clear_color.x * clear_color.w, clear_color.y * clear_color.w, clear_color.z * clear_color.w, clear_color.w);
         glClear(GL_COLOR_BUFFER_BIT);
 
+        glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 2, SSBO);
         computeShader.use();
-        glDispatchCompute((unsigned int)TEXTURE_WIDTH/8.0, (unsigned int)TEXTURE_HEIGHT/4.0, 1);
-        glMemoryBarrier(GL_SHADER_IMAGE_ACCESS_BARRIER_BIT);
+        glDispatchCompute(1,1,1);
+        glMemoryBarrier(GL_ALL_BARRIER_BITS);
+
+        glGetBufferSubData(GL_SHADER_STORAGE_BUFFER, 0, sizeof(data), (GLvoid*)data);
+        glMapBufferRange(GL_SHADER_STORAGE_BUFFER, 0, 3, GL_MAP_READ_BIT);
+
+
+
+        std::cout << data[0] << "\n";
 
 		// render image to quad
 		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);

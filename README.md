@@ -1,11 +1,5 @@
 # Globs
 
-Using SDFs to make 3d objects. This will be an application for working with SDFs. 
+![alt text](https://github.com/michbogos/globs/blob/main/marching_cubes.png?raw=true)
 
-Currently it programmatically generates the shader file.
-
-TODO:
-- Add camera movement
-- Add moving shapes
-- Add a tree structure representation
-- Walk tree and generate GLSL code
+Main implementation with raylib and on cpu mesh generation.
