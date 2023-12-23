@@ -1,5 +1,6 @@
 // C standard includes
 #include <stdio.h>
+#define CL_USE_DEPRECATED_OPENCL_2_0_APIS
 
 // OpenCL includes
 #include <CL/cl.h>

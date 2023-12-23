@@ -3,3 +3,6 @@ globs
 build/
 *.o
 *.ini
+cmake_install.cmake
+CMakeCache.txt
+CMakeFiles/
